@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Johannas Gruselschule 🎃</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bats" aria-hidden="true">🦇 🦇 🦇</div>
+  <main>
+    <!-- Menu -->
+    <section id="menu" class="screen">
+      <h1>🎃 Johannas Gruselschule 🎃</h1>
+      <p class="sub">Sammle Punkte, knacke deinen Highscore und werde zur Rechtschreib-Legende!</p>
+      <div class="stats-bar">
+        <div><span>Level</span><strong id="levelTitle"></strong></div>
+        <div><span>🏆 Highscore</span><strong id="highScore">0</strong></div>
+        <div><span>🌙 Nächte in Folge</span><strong id="streak">0</strong></div>
+      </div>
+      <div class="xpbar"><div id="xpFill"></div></div>
+      <small id="xpText"></small>
+      <button class="big" id="mixBtn">🔮 Zaubertrank-Mix (alles gemischt)</button>
+      <button class="big secondary" id="rulebookBtn">📖 Zauberbuch: alle Merksätze & Regeln</button>
+      <h2>Oder trainiere ein Thema:</h2>
+      <div id="categories"></div>
+      <h2>Deine Abzeichen</h2>
+      <div id="badges"></div>
+    </section>
+
+    <!-- Game -->
+    <section id="game" class="screen hidden">
+      <div class="topbar">
+        <button class="small" id="quitBtn">✖ Beenden</button>
+        <div>Punkte: <strong id="score">0</strong></div>
+        <div id="combo">🔥 x0</div>
+        <div id="progress"></div>
+      </div>
+      <div id="catLabel" class="catlabel"></div>
+      <h2 id="prompt"></h2>
+      <div id="display"></div>
+      <button class="small help" id="helpBtn">💡 Merksatz / Regel anzeigen (weniger Punkte)</button>
+      <div id="ruleBox" class="rulebox hidden"></div>
+      <div id="options"></div>
+      <div id="feedback" class="feedback hidden"></div>
+      <button class="big hidden" id="nextBtn">Weiter ➡️</button>
+    </section>
+
+    <!-- Rule book -->
+    <section id="rulebook" class="screen hidden">
+      <h1>📖 Zauberbuch</h1>
+      <p class="sub">Alle Merksätze und Regeln. Lies sie dir durch und trainiere sie danach im Thema „📜 Merksätze & Regeln“.</p>
+      <div id="rulebookList"></div>
+      <button class="big" id="rulebookTrainBtn">📜 Merksätze trainieren</button>
+      <button class="big secondary" id="rulebookBackBtn">🏠 Zum Menü</button>
+    </section>
+
+    <!-- Result -->
+    <section id="result" class="screen hidden">
+      <h1 id="resultTitle">Geschafft!</h1>
+      <div class="bigscore" id="resultScore"></div>
+      <p id="resultNew"></p>
+      <p id="resultText"></p>
+      <div id="resultBadges"></div>
+      <div id="resultWrong"></div>
+      <button class="big" id="againBtn">🔁 Nochmal spielen</button>
+      <button class="big secondary" id="menuBtn">🏠 Zum Menü</button>
+    </section>
+  </main>
+  <script src="questions.js"></script>
+  <script src="logic.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
+
+
+
