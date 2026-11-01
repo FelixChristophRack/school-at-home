@@ -4,26 +4,26 @@ const MAX_BOX = 3; // Leitner-style box: 0 = new/wrong, 3 = mastered
 const ROUND_SIZE = 10;
 
 const LEVELS = [
-  { xp: 0, title: 'Kleines Gespenst 👻' },
-  { xp: 100, title: 'Kürbis-Lehrling 🎃' },
-  { xp: 250, title: 'Fledermaus-Flüsterin 🦇' },
-  { xp: 450, title: 'Hexen-Schülerin 🧙‍♀️' },
-  { xp: 700, title: 'Spinnen-Meisterin 🕷️' },
-  { xp: 1000, title: 'Vampir-Profi 🧛‍♀️' },
-  { xp: 1400, title: 'Zauber-Expertin 🔮' },
-  { xp: 1900, title: 'Gruselkönigin 👑' },
+  { xp: 0, title: 'Starter 🌱' },
+  { xp: 100, title: 'Entdecker 🧭' },
+  { xp: 250, title: 'Lernprofi 📘' },
+  { xp: 450, title: 'Wortkünstler ✏️' },
+  { xp: 700, title: 'Rechtschreib-Ass 🎯' },
+  { xp: 1000, title: 'Sprachtalent 🚀' },
+  { xp: 1400, title: 'Expertin 🔬' },
+  { xp: 1900, title: 'Meisterin 👑' },
   { xp: 2500, title: 'Rechtschreib-Legende 🏆' },
 ];
 
 const BADGES = [
-  { id: 'first', name: 'Erster Spuk', icon: '👻', test: s => s.rounds >= 1 },
-  { id: 'combo5', name: 'Kombi-Hexe (5 in Folge)', icon: '🧹', test: s => s.bestCombo >= 5 },
-  { id: 'combo10', name: 'Zauber-Kombi (10 in Folge)', icon: '⚡', test: s => s.bestCombo >= 10 },
-  { id: 'perfect', name: 'Fehlerloser Geist', icon: '💎', test: s => s.perfectRounds >= 1 },
-  { id: 'streak3', name: '3 Nächte in Folge', icon: '🌙', test: s => s.streakDays >= 3 },
-  { id: 'correct100', name: '100 richtige Antworten', icon: '🎃', test: s => s.totalCorrect >= 100 },
-  { id: 'master30', name: 'Wissens-Vampir (30 gemeistert)', icon: '🧛‍♀️', test: s => countMastered(s.box) >= 30 },
-  { id: 'rounds10', name: '10 Runden gespielt', icon: '🕯️', test: s => s.rounds >= 10 },
+  { id: 'first', name: 'Erste Runde', icon: '🎉', test: s => s.rounds >= 1 },
+  { id: 'combo5', name: 'Serie: 5 in Folge', icon: '🔥', test: s => s.bestCombo >= 5 },
+  { id: 'combo10', name: 'Serie: 10 in Folge', icon: '⚡', test: s => s.bestCombo >= 10 },
+  { id: 'perfect', name: 'Fehlerlose Runde', icon: '💎', test: s => s.perfectRounds >= 1 },
+  { id: 'streak3', name: '3 Tage in Folge', icon: '📅', test: s => s.streakDays >= 3 },
+  { id: 'correct100', name: '100 richtige Antworten', icon: '✅', test: s => s.totalCorrect >= 100 },
+  { id: 'master30', name: '30 Fragen gemeistert', icon: '🧠', test: s => countMastered(s.box) >= 30 },
+  { id: 'rounds10', name: '10 Runden gespielt', icon: '🏅', test: s => s.rounds >= 10 },
 ];
 
 function defaultStats() {
@@ -158,13 +158,39 @@ function applyRoundResult(stats, result, today) {
 
 function motivationText(correct, total) {
   const ratio = total === 0 ? 0 : correct / total;
-  if (ratio === 1) return 'Fehlerlos! Du bist ein echter Rechtschreib-Geist! 👻✨';
-  if (ratio >= 0.7) return 'Super gemacht! Noch eine Runde und du wirst zur Gruselkönigin! 🎃';
-  if (ratio >= 0.4) return 'Gut gekämpft! Die Fehler kommen wieder – so lernst du sie! 🦇';
-  return 'Nicht aufgeben! Jede Hexe hat mal klein angefangen. 🧙‍♀️';
+  if (ratio === 1) return 'Fehlerlos! Stark gemacht! ✨';
+  if (ratio >= 0.7) return 'Super gemacht! Noch eine Runde und du steigst weiter auf! 🚀';
+  if (ratio >= 0.4) return 'Gut gekämpft! Die Fehler kommen wieder – so lernst du sie! 💪';
+  return 'Nicht aufgeben! Jeder fängt mal klein an – weiter geht’s! 🌱';
+}
+
+const MAX_NAME_LENGTH = 20;
+
+// Trim, collapse whitespace and limit the length of a player name
+function normalizeName(name) {
+  return String(name || '').replace(/\s+/g, ' ').trim().slice(0, MAX_NAME_LENGTH).trim();
+}
+
+// Case-insensitive key so "Anna" and "anna" are the same player
+function playerKey(name) {
+  return normalizeName(name).toLowerCase();
+}
+
+// Add a player to the list unless one with the same key already exists. Returns a new list.
+function addPlayer(players, name) {
+  const clean = normalizeName(name);
+  if (!clean || players.some(p => playerKey(p) === playerKey(clean))) return players.slice();
+  return [...players, clean];
+}
+
+// Find the stored spelling of a name (or the normalized input if new)
+function resolvePlayerName(players, name) {
+  const clean = normalizeName(name);
+  return players.find(p => playerKey(p) === playerKey(clean)) || clean;
 }
 
 const api = {
+  normalizeName, playerKey, addPlayer, resolvePlayerName,
   MAX_BOX, ROUND_SIZE, LEVELS, BADGES, defaultStats, shuffle, countMastered, questionWeight,
   weightedSample, pickQuestions, withShuffledOptions, isCorrect, updateBox, pointsFor,
   requeueWrong, levelFor, dayDiff, updateDayStreak, categoryMastery, applyRoundResult, motivationText,
@@ -172,5 +198,6 @@ const api = {
 
 if (typeof module !== 'undefined') module.exports = api;
 else window.GameLogic = api;
+
 
 

@@ -1,24 +1,96 @@
 // DOM layer. All game rules live in logic.js; this file only renders and stores.
 (function () {
   const L = window.GameLogic;
-  const STORAGE_KEY = 'johanna-deutsch-v1';
+  const LEGACY_KEY = 'johanna-deutsch-v1'; // single-player data from the first version
+  const PLAYERS_KEY = 'deutsch-players';
+  const LAST_PLAYER_KEY = 'deutsch-last-player';
   const $ = id => document.getElementById(id);
 
-  let stats = loadStats();
+  let playerName = null;
+  let stats = L.defaultStats();
   let round = null;
 
   // ---------- Storage ----------
-  function loadStats() {
+  function statsKey(name) {
+    return 'deutsch-stats-v2:' + L.playerKey(name);
+  }
+
+  function readJson(key, fallback) {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? { ...L.defaultStats(), ...JSON.parse(raw) } : L.defaultStats();
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
     } catch (e) {
-      return L.defaultStats();
+      return fallback;
     }
   }
 
+  function loadPlayers() {
+    const list = readJson(PLAYERS_KEY, []);
+    return Array.isArray(list) ? list : [];
+  }
+
+  function loadStats() {
+    return { ...L.defaultStats(), ...readJson(statsKey(playerName), {}) };
+  }
+
   function saveStats() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); } catch (e) { /* ignore */ }
+    if (!playerName) return;
+    try { localStorage.setItem(statsKey(playerName), JSON.stringify(stats)); } catch (e) { /* ignore */ }
+  }
+
+  // Log in (or create) a player. Old single-player progress is adopted by the first new player.
+  function login(rawName) {
+    const players = loadPlayers();
+    const name = L.resolvePlayerName(players, rawName);
+    if (!name) return;
+    try {
+      const legacy = localStorage.getItem(LEGACY_KEY);
+      if (legacy && players.length === 0 && !localStorage.getItem(statsKey(name))) {
+        localStorage.setItem(statsKey(name), legacy);
+        localStorage.removeItem(LEGACY_KEY);
+      }
+      localStorage.setItem(PLAYERS_KEY, JSON.stringify(L.addPlayer(players, name)));
+      localStorage.setItem(LAST_PLAYER_KEY, name);
+    } catch (e) { /* ignore */ }
+    playerName = name;
+    stats = loadStats();
+    renderMenu();
+  }
+
+  function logout() {
+    saveStats();
+    playerName = null;
+    try { localStorage.removeItem(LAST_PLAYER_KEY); } catch (e) { /* ignore */ }
+    renderLogin();
+  }
+
+  function renderLogin() {
+    const players = loadPlayers();
+    const box = $('knownPlayers');
+    box.innerHTML = '';
+    if (players.length > 0) {
+      const h = document.createElement('h3');
+      h.textContent = 'Schon dabei? Tippe auf deinen Namen:';
+      box.appendChild(h);
+      players.forEach(p => {
+        const b = document.createElement('button');
+        b.className = 'small player';
+        b.textContent = `🎃 ${p}`;
+        b.onclick = () => login(p);
+        box.appendChild(b);
+      });
+    }
+    $('nameInput').value = '';
+    show('login');
+  }
+
+  function submitName() {
+    const name = L.normalizeName($('nameInput').value);
+    if (!name) {
+      $('nameInput').focus();
+      return;
+    }
+    login(name);
   }
 
   function todayString() {
@@ -29,7 +101,7 @@
 
   // ---------- Screens ----------
   function show(id) {
-    ['menu', 'game', 'result', 'rulebook'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+    ['login', 'menu', 'game', 'result', 'rulebook'].forEach(s => $(s).classList.toggle('hidden', s !== id));
   }
 
   // Build a DOM block for a rule (title, text, mnemonic)
@@ -75,6 +147,7 @@
   }
 
   function renderMenu() {
+    $('hello').textContent = `Hallo ${playerName}! Bereit für eine Runde? 🧙‍♀️`;
     const lvl = L.levelFor(stats.xp);
     $('levelTitle').textContent = lvl.title;
     $('highScore').textContent = stats.highScore;
@@ -136,7 +209,7 @@
     $('ruleBox').classList.add('hidden');
     $('helpBtn').classList.toggle('hidden', !q.ruleId);
     const cat = CATEGORIES.find(c => c.id === q.cat);
-    $('catLabel').textContent = `${cat.icon} ${cat.name}` + (round.retried.has(q.id) ? '  👻 Wiederholung!' : '');
+    $('catLabel').textContent = `${cat.icon} ${cat.name}` + (round.retried.has(q.id) ? '  🔁 Wiederholung!' : '');
     $('prompt').textContent = q.prompt;
     $('display').textContent = q.display || '';
     $('display').classList.toggle('hidden', !q.display);
@@ -146,6 +219,7 @@
     opts.innerHTML = '';
     q.options.forEach(o => {
       const b = document.createElement('button');
+      b.className = 'opt';
       b.textContent = o;
       b.onclick = () => answer(b, o);
       opts.appendChild(b);
@@ -222,7 +296,7 @@
     const wrongBox = $('resultWrong');
     wrongBox.innerHTML = '';
     if (round.wrong.length > 0) {
-      wrongBox.innerHTML = '<h3>Das üben wir weiter:</h3><ul></ul>';
+      wrongBox.innerHTML = '<h3 class="font-semibold text-slate-900">Das üben wir weiter:</h3><ul class="mt-2 list-disc space-y-1 pl-6 text-slate-700"></ul>';
       round.wrong.forEach(q => {
         const li = document.createElement('li');
         li.textContent = `${q.display || q.prompt} → ${q.answer}`;
@@ -242,9 +316,19 @@
   $('quitBtn').onclick = () => { saveStats(); renderMenu(); };
   $('againBtn').onclick = () => startRound(round.catId);
   $('menuBtn').onclick = renderMenu;
+  $('startBtn').onclick = submitName;
+  $('nameInput').onkeydown = e => { if (e.key === 'Enter') submitName(); };
+  $('switchBtn').onclick = logout;
 
-  renderMenu();
+  // Start: log in the last player on this device or ask for a name
+  const lastPlayer = (() => { try { return localStorage.getItem(LAST_PLAYER_KEY); } catch (e) { return null; } })();
+  if (lastPlayer) login(lastPlayer);
+  else renderLogin();
 })();
+
+
+
+
 
 
 

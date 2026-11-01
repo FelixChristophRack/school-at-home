@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reusable components. Build with: npm run build:css */
+@layer components {
+  .card { @apply rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200; }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 active:scale-[.98]; }
+  .btn-primary { @apply btn bg-indigo-600 text-white shadow-sm hover:bg-indigo-700; }
+  .btn-secondary { @apply btn bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50; }
+  .btn-ghost { @apply inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100; }
+  .btn-help { @apply inline-flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 ring-1 ring-amber-200 transition hover:bg-amber-100; }
+
+  .opt { @apply w-full rounded-xl bg-white px-4 py-4 text-xl font-semibold text-slate-800 ring-1 ring-slate-300 transition hover:bg-indigo-50 hover:ring-indigo-400 active:scale-[.98]; }
+  .opt.right { @apply bg-emerald-100 text-emerald-900 ring-2 ring-emerald-500; }
+  .opt.wrong { @apply bg-rose-100 text-rose-900 ring-2 ring-rose-500; }
+
+  .cat { @apply rounded-2xl bg-white p-4 text-left shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-indigo-400; }
+  .cat-icon { @apply flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-xl; }
+  .cat-name { @apply mt-3 block font-semibold text-slate-900; }
+  .cat-desc { @apply mt-0.5 block text-sm text-slate-500; }
+  .hardtag { @apply ml-2 inline-block rounded-full bg-amber-50 px-2 py-0.5 align-middle text-xs font-medium text-amber-700 ring-1 ring-amber-200; }
+  .meter { @apply mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100; }
+  .meter > div { @apply h-full rounded-full bg-emerald-500; }
+
+  .badge { @apply inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 ring-1 ring-indigo-100; }
+  .badge.locked { @apply bg-slate-100 text-slate-400 opacity-70 ring-slate-200 grayscale; }
+
+  .player { @apply m-1 rounded-full bg-indigo-50 px-4 py-2 font-medium text-indigo-700 ring-1 ring-indigo-100 transition hover:bg-indigo-100; }
+
+  .feedback { @apply mt-5 rounded-xl p-4; }
+  .feedback.ok { @apply bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200; }
+  .feedback.bad { @apply bg-rose-50 text-rose-900 ring-1 ring-rose-200; }
+
+  .rulebox { @apply mt-3 rounded-xl bg-amber-50 p-4 text-amber-900 ring-1 ring-amber-200; }
+  .rulebox .memo { @apply my-1 font-semibold; }
+  .rule-item { @apply mt-3 rounded-xl bg-white p-4 ring-1 ring-slate-200; }
+  .rule-item h4 { @apply font-semibold text-slate-900; }
+  .rule-item .memo { @apply my-1 text-sm font-medium text-indigo-700; }
+
+  .stat { @apply rounded-xl bg-slate-50 p-3 text-center ring-1 ring-slate-200; }
+  .stat span { @apply block text-xs font-medium uppercase tracking-wide text-slate-500; }
+  .stat strong { @apply mt-1 block text-base font-semibold text-slate-900; }
+}
+
+@keyframes pop {
+  0% { transform: scale(.85); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.pop { animation: pop .35s ease-out; }
+

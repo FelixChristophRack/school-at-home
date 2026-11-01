@@ -64,10 +64,22 @@ test('every question has a valid rule (except rule questions)', () => {
   assert.ok(QUESTIONS.filter(q => q.cat === 'regeln').length >= 20);
 });
 
+test('player names', () => {
+  assert.strictEqual(L.normalizeName('  Anna   Lena  '), 'Anna Lena');
+  assert.strictEqual(L.normalizeName('x'.repeat(50)).length, 20);
+  assert.strictEqual(L.normalizeName(null), '');
+  assert.strictEqual(L.playerKey('Anna'), L.playerKey(' anna '));
+  assert.deepStrictEqual(L.addPlayer(['Anna'], 'anna'), ['Anna']);
+  assert.deepStrictEqual(L.addPlayer(['Anna'], 'Ben'), ['Anna', 'Ben']);
+  assert.deepStrictEqual(L.addPlayer(['Anna'], '   '), ['Anna']);
+  assert.strictEqual(L.resolvePlayerName(['Anna'], 'ANNA'), 'Anna');
+});
+
 test('levelFor', () => {
   assert.strictEqual(L.levelFor(0).index, 0);
   assert.strictEqual(L.levelFor(260).index, 2);
 });
+
 
 
 

@@ -2,69 +2,117 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Johannas Gruselschule 🎃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Deutsch-Trainer">
+  <title>Deutsch-Trainer</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="bats" aria-hidden="true">🦇 🦇 🦇</div>
-  <main>
-    <!-- Menu -->
-    <section id="menu" class="screen">
-      <h1>🎃 Johannas Gruselschule 🎃</h1>
-      <p class="sub">Sammle Punkte, knacke deinen Highscore und werde zur Rechtschreib-Legende!</p>
-      <div class="stats-bar">
-        <div><span>Level</span><strong id="levelTitle"></strong></div>
-        <div><span>🏆 Highscore</span><strong id="highScore">0</strong></div>
-        <div><span>🌙 Nächte in Folge</span><strong id="streak">0</strong></div>
+<body class="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased">
+  <header class="border-b border-slate-200 bg-white">
+    <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+      <div class="flex items-center gap-2 text-lg font-bold text-slate-900">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-base text-white">✏️</span>
+        Deutsch-Trainer
       </div>
-      <div class="xpbar"><div id="xpFill"></div></div>
-      <small id="xpText"></small>
-      <button class="big" id="mixBtn">🔮 Zaubertrank-Mix (alles gemischt)</button>
-      <button class="big secondary" id="rulebookBtn">📖 Zauberbuch: alle Merksätze & Regeln</button>
-      <h2>Oder trainiere ein Thema:</h2>
-      <div id="categories"></div>
-      <h2>Deine Abzeichen</h2>
-      <div id="badges"></div>
+      <button class="btn-ghost hidden" id="switchBtn">👤 Spieler wechseln</button>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-6">
+    <!-- Login -->
+    <section id="login" class="hidden">
+      <div class="card mx-auto mt-6 max-w-md text-center">
+        <h1 class="text-2xl font-bold text-slate-900">Willkommen!</h1>
+        <p class="mt-1 text-slate-500">Wie heißt du?</p>
+        <input id="nameInput" type="text" maxlength="20" placeholder="Dein Name" autocomplete="off" autocapitalize="words"
+          class="mt-5 w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-center text-xl text-slate-900 ring-1 ring-slate-300 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <button class="btn-primary mt-4 w-full text-lg" id="startBtn">Los geht’s →</button>
+        <div id="knownPlayers" class="mt-5"></div>
+      </div>
+    </section>
+
+    <!-- Menu -->
+    <section id="menu" class="hidden">
+      <div class="card">
+        <p class="text-lg font-semibold text-slate-900" id="hello"></p>
+        <div class="mt-4 grid grid-cols-3 gap-3">
+          <div class="stat"><span>Level</span><strong id="levelTitle"></strong></div>
+          <div class="stat"><span>🏆 Highscore</span><strong id="highScore">0</strong></div>
+          <div class="stat"><span>🔥 Tage in Folge</span><strong id="streak">0</strong></div>
+        </div>
+        <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200">
+          <div id="xpFill" class="h-full w-0 rounded-full bg-indigo-500 transition-all duration-500"></div>
+        </div>
+        <p id="xpText" class="mt-1 text-xs text-slate-500"></p>
+      </div>
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <button class="btn-primary py-4 text-lg" id="mixBtn">🎲 Mix: alles gemischt</button>
+        <button class="btn-secondary py-4 text-lg" id="rulebookBtn">📖 Merksätze & Regeln</button>
+      </div>
+
+      <h2 class="mb-3 mt-8 text-lg font-semibold text-slate-900">Themen trainieren</h2>
+      <div id="categories" class="grid gap-3 sm:grid-cols-2"></div>
+
+      <h2 class="mb-3 mt-8 text-lg font-semibold text-slate-900">Deine Abzeichen</h2>
+      <div id="badges" class="flex flex-wrap gap-2"></div>
     </section>
 
     <!-- Game -->
-    <section id="game" class="screen hidden">
-      <div class="topbar">
-        <button class="small" id="quitBtn">✖ Beenden</button>
-        <div>Punkte: <strong id="score">0</strong></div>
-        <div id="combo">🔥 x0</div>
-        <div id="progress"></div>
+    <section id="game" class="hidden">
+      <div class="flex items-center justify-between gap-2">
+        <button class="btn-ghost" id="quitBtn">✕ Beenden</button>
+        <div class="flex items-center gap-2 text-sm font-semibold">
+          <span class="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Punkte: <strong id="score">0</strong></span>
+          <span id="combo" class="rounded-full bg-orange-50 px-3 py-1 text-orange-700 ring-1 ring-orange-200">🔥 x0</span>
+        </div>
       </div>
-      <div id="catLabel" class="catlabel"></div>
-      <h2 id="prompt"></h2>
-      <div id="display"></div>
-      <button class="small help" id="helpBtn">💡 Merksatz / Regel anzeigen (weniger Punkte)</button>
-      <div id="ruleBox" class="rulebox hidden"></div>
-      <div id="options"></div>
-      <div id="feedback" class="feedback hidden"></div>
-      <button class="big hidden" id="nextBtn">Weiter ➡️</button>
+      <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+        <div id="progressBar" class="h-full w-0 rounded-full bg-indigo-500 transition-all duration-300"></div>
+      </div>
+      <p id="progress" class="mt-1 text-right text-xs text-slate-500"></p>
+
+      <div class="card mt-3">
+        <div id="catLabel" class="text-sm font-medium text-indigo-600"></div>
+        <h2 id="prompt" class="mt-2 text-xl font-semibold text-slate-900"></h2>
+        <div id="display" class="mt-4 rounded-xl bg-slate-50 px-4 py-6 text-center text-3xl font-bold tracking-wide text-slate-900 ring-1 ring-slate-200"></div>
+        <div class="mt-4">
+          <button class="btn-help" id="helpBtn">💡 Merksatz / Regel anzeigen <span class="text-xs opacity-70">(weniger Punkte)</span></button>
+          <div id="ruleBox" class="rulebox hidden"></div>
+        </div>
+        <div id="options" class="mt-5 grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-3"></div>
+        <div id="feedback" class="feedback hidden"></div>
+        <button class="btn-primary mt-4 hidden w-full text-lg" id="nextBtn">Weiter →</button>
+      </div>
     </section>
 
     <!-- Rule book -->
-    <section id="rulebook" class="screen hidden">
-      <h1>📖 Zauberbuch</h1>
-      <p class="sub">Alle Merksätze und Regeln. Lies sie dir durch und trainiere sie danach im Thema „📜 Merksätze & Regeln“.</p>
+    <section id="rulebook" class="hidden">
+      <h1 class="text-2xl font-bold text-slate-900">📖 Merksätze & Regeln</h1>
+      <p class="mt-1 text-slate-500">Lies die Regeln durch und trainiere sie danach im Thema „Merksätze & Regeln“.</p>
       <div id="rulebookList"></div>
-      <button class="big" id="rulebookTrainBtn">📜 Merksätze trainieren</button>
-      <button class="big secondary" id="rulebookBackBtn">🏠 Zum Menü</button>
+      <div class="mt-6 grid gap-3 sm:grid-cols-2">
+        <button class="btn-primary" id="rulebookTrainBtn">📜 Regeln trainieren</button>
+        <button class="btn-secondary" id="rulebookBackBtn">← Zum Menü</button>
+      </div>
     </section>
 
     <!-- Result -->
-    <section id="result" class="screen hidden">
-      <h1 id="resultTitle">Geschafft!</h1>
-      <div class="bigscore" id="resultScore"></div>
-      <p id="resultNew"></p>
-      <p id="resultText"></p>
-      <div id="resultBadges"></div>
-      <div id="resultWrong"></div>
-      <button class="big" id="againBtn">🔁 Nochmal spielen</button>
-      <button class="big secondary" id="menuBtn">🏠 Zum Menü</button>
+    <section id="result" class="hidden">
+      <div class="card text-center">
+        <h1 class="text-2xl font-bold text-slate-900" id="resultTitle">Geschafft! 🎉</h1>
+        <div class="mt-2 text-5xl font-extrabold text-indigo-600" id="resultScore"></div>
+        <p id="resultNew" class="mt-2 font-semibold text-amber-600"></p>
+        <p id="resultText" class="mt-2 text-slate-600"></p>
+        <div id="resultBadges" class="mt-4 flex flex-wrap justify-center gap-2"></div>
+        <div id="resultWrong" class="mt-4 text-left"></div>
+      </div>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <button class="btn-primary" id="againBtn">🔁 Nochmal spielen</button>
+        <button class="btn-secondary" id="menuBtn">← Zum Menü</button>
+      </div>
     </section>
   </main>
   <script src="questions.js"></script>
@@ -72,7 +120,4 @@
   <script src="app.js"></script>
 </body>
 </html>
-
-
-
 

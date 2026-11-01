@@ -2,13 +2,13 @@
 // Every question: { id, cat, prompt, display?, options[], answer, hint }
 
 const CATEGORIES = [
-  { id: 'sss', name: 'S-Laute: s / ss / ß', icon: '🕷️', weight: 3, desc: 'Gruselig wichtig! Hier üben wir extra viel.' },
-  { id: 'nominal', name: 'Nominalisierung', icon: '🧙‍♀️', weight: 3, desc: 'Verben & Adjektive als Nomen – großschreiben?' },
-  { id: 'silben', name: 'Offene & geschlossene Silben', icon: '🦇', weight: 1, desc: 'Lang oder kurz gesprochen?' },
-  { id: 'strategien', name: 'Rechtschreib-Strategien', icon: '🔮', weight: 2, desc: 'Zerlegen, Verlängern, Ableiten' },
-  { id: 'doppel', name: 'Doppelkonsonanten', icon: '🎃', weight: 2, desc: 'Kurzer Vokal – doppelter Konsonant?' },
-  { id: 'genus', name: 'Genus & Numerus', icon: '👻', weight: 1, desc: 'der, die, das – Einzahl & Mehrzahl' },
-  { id: 'regeln', name: 'Merksätze & Regeln', icon: '📜', weight: 2, desc: 'Kennst du alle Zaubersprüche der Rechtschreibung?' },
+  { id: 'sss', name: 'S-Laute: s / ss / ß', icon: '🔠', weight: 3, desc: 'Besonders wichtig! Hier üben wir extra viel.' },
+  { id: 'nominal', name: 'Nominalisierung', icon: '✍️', weight: 3, desc: 'Verben & Adjektive als Nomen – großschreiben?' },
+  { id: 'silben', name: 'Offene & geschlossene Silben', icon: '🧩', weight: 1, desc: 'Lang oder kurz gesprochen?' },
+  { id: 'strategien', name: 'Rechtschreib-Strategien', icon: '🧭', weight: 2, desc: 'Zerlegen, Verlängern, Ableiten' },
+  { id: 'doppel', name: 'Doppelkonsonanten', icon: '🔡', weight: 2, desc: 'Kurzer Vokal – doppelter Konsonant?' },
+  { id: 'genus', name: 'Genus & Numerus', icon: '📚', weight: 1, desc: 'der, die, das – Einzahl & Mehrzahl' },
+  { id: 'regeln', name: 'Merksätze & Regeln', icon: '📜', weight: 2, desc: 'Kennst du alle Merksätze und Regeln der Rechtschreibung?' },
 ];
 
 // ---------- Builders (small functions keep the data compact and testable) ----------

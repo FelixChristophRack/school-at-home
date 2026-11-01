@@ -1,0 +1,12 @@
+{
+  "name": "deutsch-trainer",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./style.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./style.css --watch",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
