@@ -8,6 +8,7 @@
 
   let playerName = null;
   let stats = L.defaultStats();
+  let profile = L.defaultProfile();
   let round = null;
 
   // ---------- Storage ----------
@@ -38,6 +39,89 @@
     try { localStorage.setItem(statsKey(playerName), JSON.stringify(stats)); } catch (e) { /* ignore */ }
   }
 
+  function profileKey(name) {
+    return 'deutsch-profile:' + L.playerKey(name);
+  }
+
+  function loadProfile(name) {
+    return L.normalizeProfile(readJson(profileKey(name), null));
+  }
+
+  function saveProfile(name, data) {
+    try { localStorage.setItem(profileKey(name), JSON.stringify(data)); } catch (e) { /* ignore */ }
+  }
+
+  // Move stats and profile data of a player to a new name key
+  function moveStorage(oldName, newName) {
+    if (L.playerKey(oldName) === L.playerKey(newName)) return;
+    try {
+      const rawStats = localStorage.getItem(statsKey(oldName));
+      if (rawStats) localStorage.setItem(statsKey(newName), rawStats);
+      localStorage.removeItem(statsKey(oldName));
+      localStorage.removeItem(profileKey(oldName));
+    } catch (e) { /* ignore */ }
+  }
+
+  // ---------- Settings ----------
+  let draft = null;
+
+  function showSettingsError(message) {
+    const el = $('settingsError');
+    el.textContent = message || '';
+    el.classList.toggle('hidden', !message);
+  }
+
+  // Build a selectable button; the active one is highlighted
+  function choiceButton(label, active, onClick, extraClass) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = `${extraClass} rounded-xl px-3 py-2 ring-1 transition ` +
+      (active ? 'bg-indigo-100 ring-2 ring-indigo-500' : 'bg-white ring-slate-200 hover:bg-slate-50');
+    b.textContent = label;
+    b.onclick = onClick;
+    return b;
+  }
+
+  const GENDER_LABELS = { neutral: 'Neutral (z. B. Forschergeist)', female: 'Weiblich (Expertin)', male: 'Männlich (Experte)' };
+
+  function renderSettingsChoices() {
+    const grid = $('avatarGrid');
+    grid.innerHTML = '';
+    L.AVATARS.forEach(a => grid.appendChild(choiceButton(a, a === draft.avatar,
+      () => { draft.avatar = a; renderSettingsChoices(); }, 'text-2xl')));
+    const genders = $('genderChoices');
+    genders.innerHTML = '';
+    L.GENDERS.forEach(g => genders.appendChild(choiceButton(GENDER_LABELS[g], g === draft.gender,
+      () => { draft.gender = g; renderSettingsChoices(); }, 'text-sm font-medium')));
+  }
+
+  function openSettings() {
+    draft = { ...profile };
+    $('settingsName').value = playerName;
+    showSettingsError('');
+    renderSettingsChoices();
+    show('settings');
+  }
+
+  function saveSettings() {
+    const res = L.renamePlayerInList(loadPlayers(), playerName, $('settingsName').value);
+    if (!res) {
+      showSettingsError('Dieser Name ist leer oder schon vergeben.');
+      return;
+    }
+    saveStats();
+    moveStorage(playerName, res.name);
+    try {
+      localStorage.setItem(PLAYERS_KEY, JSON.stringify(res.players));
+      localStorage.setItem(LAST_PLAYER_KEY, res.name);
+    } catch (e) { /* ignore */ }
+    playerName = res.name;
+    profile = L.normalizeProfile(draft);
+    saveProfile(playerName, profile);
+    saveStats();
+    renderMenu();
+  }
+
   // Log in (or create) a player. Old single-player progress is adopted by the first new player.
   function login(rawName) {
     const players = loadPlayers();
@@ -54,6 +138,7 @@
     } catch (e) { /* ignore */ }
     playerName = name;
     stats = loadStats();
+    profile = loadProfile(name);
     renderMenu();
   }
 
@@ -75,7 +160,7 @@
       players.forEach(p => {
         const b = document.createElement('button');
         b.className = 'small player';
-        b.textContent = `🎃 ${p}`;
+        b.textContent = `${loadProfile(p).avatar} ${p}`;
         b.onclick = () => login(p);
         box.appendChild(b);
       });
@@ -101,8 +186,9 @@
 
   // ---------- Screens ----------
   function show(id) {
-    ['login', 'menu', 'game', 'result', 'rulebook'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+    ['login', 'menu', 'game', 'result', 'rulebook', 'settings'].forEach(s => $(s).classList.toggle('hidden', s !== id));
     $('switchBtn').classList.toggle('hidden', id !== 'menu');
+    $('settingsBtn').classList.toggle('hidden', id !== 'menu');
   }
 
   // Build a titled list (steps or examples) for a rule
@@ -222,8 +308,9 @@
   }
 
   function renderMenu() {
-    $('hello').textContent = `Hallo ${playerName}! Bereit für eine Runde? 🧙‍♀️`;
-    const lvl = L.levelFor(stats.xp);
+    $('avatar').textContent = profile.avatar;
+    $('hello').textContent = `Hallo ${playerName}! Bereit für eine Runde?`;
+    const lvl = L.levelFor(stats.xp, profile.gender);
     $('levelTitle').textContent = lvl.title;
     $('highScore').textContent = stats.highScore;
     $('streak').textContent = stats.streakDays;
@@ -388,6 +475,9 @@
   $('startBtn').onclick = submitName;
   $('nameInput').onkeydown = e => { if (e.key === 'Enter') submitName(); };
   $('switchBtn').onclick = logout;
+  $('settingsBtn').onclick = openSettings;
+  $('settingsSaveBtn').onclick = saveSettings;
+  $('settingsCancelBtn').onclick = renderMenu;
 
   // Start: log in the last player on this device or ask for a name
   const lastPlayer = (() => { try { return localStorage.getItem(LAST_PLAYER_KEY); } catch (e) { return null; } })();

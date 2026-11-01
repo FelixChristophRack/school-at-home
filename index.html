@@ -16,7 +16,10 @@
         <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-base text-white">✏️</span>
         Deutsch-Trainer
       </div>
-      <button class="btn-ghost hidden" id="switchBtn">👤 Spieler wechseln</button>
+      <div class="flex items-center gap-1">
+        <button class="btn-ghost hidden" id="settingsBtn">⚙️ Einstellungen</button>
+        <button class="btn-ghost hidden" id="switchBtn">👤 Spieler wechseln</button>
+      </div>
     </div>
   </header>
 
@@ -33,10 +36,29 @@
       </div>
     </section>
 
+    <!-- Settings -->
+    <section id="settings" class="hidden">
+      <div class="card">
+        <h1 class="text-2xl font-bold text-slate-900">⚙️ Einstellungen</h1>
+        <label class="mt-5 block text-sm font-semibold text-slate-700" for="settingsName">Dein Name</label>
+        <input id="settingsName" type="text" maxlength="20" autocomplete="off"
+          class="mt-1 w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-lg text-slate-900 ring-1 ring-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <p id="settingsError" class="mt-1 hidden text-sm text-red-600"></p>
+        <div class="mt-5 text-sm font-semibold text-slate-700">Dein Avatar</div>
+        <div id="avatarGrid" class="mt-2 grid grid-cols-6 gap-2 sm:grid-cols-8"></div>
+        <div class="mt-5 text-sm font-semibold text-slate-700">Wie sollen Titel für dich lauten?</div>
+        <div id="genderChoices" class="mt-2 flex flex-wrap gap-2"></div>
+      </div>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <button class="btn-primary" id="settingsSaveBtn">💾 Speichern</button>
+        <button class="btn-secondary" id="settingsCancelBtn">← Abbrechen</button>
+      </div>
+    </section>
+
     <!-- Menu -->
     <section id="menu" class="hidden">
       <div class="card">
-        <p class="text-lg font-semibold text-slate-900" id="hello"></p>
+        <p class="flex items-center gap-2 text-lg font-semibold text-slate-900"><span id="avatar" class="text-3xl"></span><span id="hello"></span></p>
         <div class="mt-4 grid grid-cols-3 gap-3">
           <div class="stat"><span>Level</span><strong id="levelTitle"></strong></div>
           <div class="stat"><span>🏆 Highscore</span><strong id="highScore">0</strong></div>

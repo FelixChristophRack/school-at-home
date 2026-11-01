@@ -10,8 +10,8 @@ const LEVELS = [
   { xp: 450, title: 'Wortkünstler ✏️' },
   { xp: 700, title: 'Rechtschreib-Ass 🎯' },
   { xp: 1000, title: 'Sprachtalent 🚀' },
-  { xp: 1400, title: 'Expertin 🔬' },
-  { xp: 1900, title: 'Meisterin 👑' },
+  { xp: 1400, title: 'Forschergeist 🔬', female: 'Expertin 🔬', male: 'Experte 🔬' },
+  { xp: 1900, title: 'Meistertalent 👑', female: 'Meisterin 👑', male: 'Meister 👑' },
   { xp: 2500, title: 'Rechtschreib-Legende 🏆' },
 ];
 
@@ -119,11 +119,20 @@ function requeueWrong(queue, question, gapSize = 2) {
   return copy;
 }
 
-function levelFor(xp) {
+const GENDERS = ['neutral', 'female', 'male'];
+
+// Title of a level for the chosen gender (falls back to the neutral title)
+function titleForGender(level, gender = 'neutral') {
+  if (gender === 'female' && level.female) return level.female;
+  if (gender === 'male' && level.male) return level.male;
+  return level.title;
+}
+
+function levelFor(xp, gender = 'neutral') {
   let index = 0;
   LEVELS.forEach((l, i) => { if (xp >= l.xp) index = i; });
   const next = LEVELS[index + 1] || null;
-  return { index, title: LEVELS[index].title, nextXp: next ? next.xp : null, currentXp: LEVELS[index].xp };
+  return { index, title: titleForGender(LEVELS[index], gender), nextXp: next ? next.xp : null, currentXp: LEVELS[index].xp };
 }
 
 // Difference in days between two YYYY-MM-DD strings
@@ -197,7 +206,42 @@ function resolvePlayerName(players, name) {
   return players.find(p => playerKey(p) === playerKey(clean)) || clean;
 }
 
+const DEFAULT_AVATAR = '🎃';
+
+// Funny and cool avatar choices
+const AVATARS = [
+  '🎃', '😎', '🤓', '🥳', '🤩', '🤠', '🥷', '🧙', '🧛', '🧟', '🧞', '🧜',
+  '🦄', '🐉', '🦖', '🦊', '🐼', '🐸', '🐙', '🦉', '🦈', '🐧', '🦁', '🐲',
+  '🤖', '👽', '👾', '👻', '💀', '🚀', '🛸', '🦸', '🦹', '🧑‍🚀', '🧑‍🎤', '🧑‍🔬',
+  '🌈', '⚡', '🔥', '🍕', '🍩', '🌮', '🎸', '🎮', '🛹', '🏀', '⚽', '👑',
+];
+
+function defaultProfile() {
+  return { avatar: DEFAULT_AVATAR, gender: 'neutral' };
+}
+
+// Sanitize a stored profile: unknown avatar or gender values fall back to defaults
+function normalizeProfile(profile) {
+  const p = profile || {};
+  return {
+    avatar: AVATARS.includes(p.avatar) ? p.avatar : DEFAULT_AVATAR,
+    gender: GENDERS.includes(p.gender) ? p.gender : 'neutral',
+  };
+}
+
+// Rename a player in the list. Returns { players, name } or null if the new name is empty
+// or already used by a different player.
+function renamePlayerInList(players, oldName, newName) {
+  const clean = normalizeName(newName);
+  if (!clean) return null;
+  const clash = players.some(p => playerKey(p) === playerKey(clean) && playerKey(p) !== playerKey(oldName));
+  if (clash) return null;
+  const list = players.map(p => (playerKey(p) === playerKey(oldName) ? clean : p));
+  return { players: list, name: clean };
+}
+
 const api = {
+  GENDERS, AVATARS, DEFAULT_AVATAR, defaultProfile, normalizeProfile, renamePlayerInList, titleForGender,
   normalizeName, playerKey, addPlayer, resolvePlayerName,
   MAX_BOX, ROUND_SIZE, LEVELS, BADGES, defaultStats, shuffle, countMastered, questionWeight,
   weightedSample, filterPool, pickQuestions, withShuffledOptions, isCorrect, updateBox, pointsFor,

@@ -3,6 +3,26 @@ const assert = require('node:assert');
 const L = require('./logic.js');
 const { CATEGORIES, QUESTIONS, getRule } = require('./questions.js');
 
+test('levelFor uses gender-neutral titles by default', () => {
+  assert.ok(!/Expertin|Experte/.test(L.levelFor(1500).title));
+  assert.ok(L.levelFor(1500, 'female').title.includes('Expertin'));
+  assert.ok(L.levelFor(1500, 'male').title.includes('Experte'));
+  assert.strictEqual(L.levelFor(0, 'female').title, L.levelFor(0).title);
+});
+
+test('normalizeProfile falls back to defaults', () => {
+  assert.deepStrictEqual(L.normalizeProfile(null), L.defaultProfile());
+  assert.deepStrictEqual(L.normalizeProfile({ avatar: 'x', gender: 'y' }), L.defaultProfile());
+  assert.deepStrictEqual(L.normalizeProfile({ avatar: '🦄', gender: 'male' }), { avatar: '🦄', gender: 'male' });
+});
+
+test('renamePlayerInList', () => {
+  assert.deepStrictEqual(L.renamePlayerInList(['Anna', 'Ben'], 'Anna', ' Anni '), { players: ['Anni', 'Ben'], name: 'Anni' });
+  assert.strictEqual(L.renamePlayerInList(['Anna', 'Ben'], 'Anna', 'ben'), null);
+  assert.strictEqual(L.renamePlayerInList(['Anna'], 'Anna', '  '), null);
+  assert.deepStrictEqual(L.renamePlayerInList(['Anna'], 'Anna', 'ANNA'), { players: ['ANNA'], name: 'ANNA' });
+});
+
 test('all questions are valid', () => {
   const ids = new Set();
   for (const q of QUESTIONS) {
