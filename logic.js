@@ -74,9 +74,17 @@ function weightedSample(items, weights, n, rng = Math.random) {
   return result;
 }
 
-// Choose the questions for a round. catId = 'mix' uses all categories.
-function pickQuestions(all, stats, catId, categories, n = ROUND_SIZE, rng = Math.random) {
-  const pool = catId === 'mix' ? all : all.filter(q => q.cat === catId);
+// Select the questions of a category, optionally narrowed to one sub exercise.
+// catId = 'mix' uses all questions.
+function filterPool(all, catId, subId = null) {
+  if (catId === 'mix') return all;
+  const inCat = all.filter(q => q.cat === catId);
+  return subId ? inCat.filter(q => q.sub === subId) : inCat;
+}
+
+// Choose the questions for a round. catId = 'mix' uses all categories, subId narrows to a sub exercise.
+function pickQuestions(all, stats, catId, categories, n = ROUND_SIZE, rng = Math.random, subId = null) {
+  const pool = filterPool(all, catId, subId);
   const weights = pool.map(q => questionWeight(q, stats.box, categories));
   return weightedSample(pool, weights, n, rng);
 }
@@ -130,8 +138,8 @@ function updateDayStreak(stats, today) {
 }
 
 // Mastery (0..1) of a category based on the Leitner boxes
-function categoryMastery(all, box, catId) {
-  const qs = all.filter(q => q.cat === catId);
+function categoryMastery(all, box, catId, subId = null) {
+  const qs = filterPool(all, catId, subId);
   if (qs.length === 0) return 0;
   const sum = qs.reduce((s, q) => s + ((box[q.id] || 0) / MAX_BOX), 0);
   return sum / qs.length;
@@ -192,7 +200,7 @@ function resolvePlayerName(players, name) {
 const api = {
   normalizeName, playerKey, addPlayer, resolvePlayerName,
   MAX_BOX, ROUND_SIZE, LEVELS, BADGES, defaultStats, shuffle, countMastered, questionWeight,
-  weightedSample, pickQuestions, withShuffledOptions, isCorrect, updateBox, pointsFor,
+  weightedSample, filterPool, pickQuestions, withShuffledOptions, isCorrect, updateBox, pointsFor,
   requeueWrong, levelFor, dayDiff, updateDayStreak, categoryMastery, applyRoundResult, motivationText,
 };
 

@@ -20,6 +20,13 @@
   .cat-icon { @apply flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-xl; }
   .cat-name { @apply mt-3 block font-semibold text-slate-900; }
   .cat-desc { @apply mt-0.5 block text-sm text-slate-500; }
+  .subs { @apply mt-2 flex flex-wrap gap-2; }
+  .sub-btn { @apply inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 ring-1 ring-indigo-100 transition hover:bg-indigo-100; }
+  .sub-btn small { @apply text-xs text-indigo-400; }
+  .rule-list { @apply mt-2 text-sm; }
+  .rule-list-title { @apply font-semibold; }
+  .rule-list ul { @apply list-disc pl-5; }
+  .rule-list ol { @apply list-decimal pl-5; }
   .hardtag { @apply ml-2 inline-block rounded-full bg-amber-50 px-2 py-0.5 align-middle text-xs font-medium text-amber-700 ring-1 ring-amber-200; }
   .meter { @apply mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100; }
   .meter > div { @apply h-full rounded-full bg-emerald-500; }

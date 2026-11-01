@@ -80,6 +80,34 @@ test('levelFor', () => {
   assert.strictEqual(L.levelFor(260).index, 2);
 });
 
+test('every sub exercise has questions and every sub id is known', () => {
+  for (const c of CATEGORIES.filter(c => c.subs)) {
+    for (const s of c.subs) {
+      assert.ok(QUESTIONS.some(q => q.cat === c.id && q.sub === s.id), `no questions for sub ${s.id}`);
+    }
+    const ids = c.subs.map(s => s.id);
+    assert.ok(QUESTIONS.filter(q => q.cat === c.id).every(q => ids.includes(q.sub)), `unknown sub in ${c.id}`);
+  }
+});
 
+test('filterPool and pickQuestions narrow down to a sub exercise', () => {
+  const pool = L.filterPool(QUESTIONS, 'nominal', 'nom-adj');
+  assert.ok(pool.length >= 10 && pool.every(q => q.sub === 'nom-adj'));
+  const picked = L.pickQuestions(QUESTIONS, L.defaultStats(), 'nominal', CATEGORIES, 5, Math.random, 'nom-klein');
+  assert.strictEqual(picked.length, 5);
+  assert.ok(picked.every(q => q.sub === 'nom-klein'));
+  assert.strictEqual(L.filterPool(QUESTIONS, 'mix', 'nom-adj'), QUESTIONS);
+});
 
+test('nominalization has many examples and each one has a rule', () => {
+  const nominal = QUESTIONS.filter(q => q.cat === 'nominal');
+  assert.ok(nominal.length >= 80);
+  for (const q of nominal) assert.ok(getRule(q.ruleId), q.id);
+});
 
+test('categoryMastery can be limited to a sub exercise', () => {
+  const ids = QUESTIONS.filter(q => q.sub === 'nom-adj').map(q => q.id);
+  const box = Object.fromEntries(ids.map(id => [id, L.MAX_BOX]));
+  assert.strictEqual(L.categoryMastery(QUESTIONS, box, 'nominal', 'nom-adj'), 1);
+  assert.strictEqual(L.categoryMastery(QUESTIONS, box, 'nominal', 'nom-klein'), 0);
+});

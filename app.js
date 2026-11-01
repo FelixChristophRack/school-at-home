@@ -102,6 +102,24 @@
   // ---------- Screens ----------
   function show(id) {
     ['login', 'menu', 'game', 'result', 'rulebook'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+    $('switchBtn').classList.toggle('hidden', id !== 'menu');
+  }
+
+  // Build a titled list (steps or examples) for a rule
+  function listElement(heading, tag, items) {
+    const box = document.createElement('div');
+    box.className = 'rule-list';
+    const h = document.createElement('div');
+    h.className = 'rule-list-title';
+    h.textContent = heading;
+    const list = document.createElement(tag);
+    items.forEach(i => {
+      const li = document.createElement('li');
+      li.textContent = i;
+      list.appendChild(li);
+    });
+    box.append(h, list);
+    return box;
   }
 
   // Build a DOM block for a rule (title, text, mnemonic)
@@ -116,6 +134,8 @@
     const text = document.createElement('div');
     text.textContent = rule.text;
     el.append(title, memo, text);
+    if (rule.steps) el.appendChild(listElement('So gehst du vor:', 'ol', rule.steps));
+    if (rule.examples) el.appendChild(listElement('Beispiele:', 'ul', rule.examples));
     return el;
   }
 
@@ -126,6 +146,7 @@
       const rules = RULES.filter(r => r.cat === c.id);
       if (rules.length === 0) return;
       const h = document.createElement('h2');
+      h.className = 'mt-8 text-lg font-semibold text-slate-900';
       h.textContent = `${c.icon} ${c.name}`;
       list.appendChild(h);
       rules.forEach(r => list.appendChild(ruleElement(r, 'rule-item')));
@@ -146,6 +167,53 @@
     $('helpBtn').classList.add('hidden');
   }
 
+  function masteryPercent(catId, subId) {
+    return Math.round(L.categoryMastery(QUESTIONS, stats.box, catId, subId) * 100);
+  }
+
+  // Build the main button of a category (starts a round with all its questions)
+  function categoryButton(c) {
+    const b = document.createElement('button');
+    b.className = 'cat';
+    const mastery = masteryPercent(c.id, null);
+    b.innerHTML = `<span class="cat-icon">${c.icon}</span>` +
+      `<span class="cat-name"><span class="cat-title"></span>${c.weight >= 3 ? '<span class="hardtag">⭐ Extra-Training</span>' : ''}</span>` +
+      '<span class="cat-desc"></span>' +
+      `<div class="meter"><div style="width:${mastery}%"></div></div>` +
+      `<small class="mt-1 block text-xs text-slate-500">${mastery}% gemeistert</small>`;
+    b.querySelector('.cat-title').textContent = c.name;
+    b.querySelector('.cat-desc').textContent = c.desc;
+    b.onclick = () => startRound(c.id);
+    return b;
+  }
+
+  // Build one small button for a sub exercise of a category
+  function subButton(c, sub) {
+    const b = document.createElement('button');
+    b.className = 'sub-btn';
+    b.title = sub.desc;
+    const label = document.createElement('span');
+    label.textContent = sub.name;
+    const pct = document.createElement('small');
+    pct.textContent = `${masteryPercent(c.id, sub.id)}%`;
+    b.append(label, pct);
+    b.onclick = () => startRound(c.id, sub.id);
+    return b;
+  }
+
+  // A category card plus (if available) its sub exercises
+  function categoryElement(c) {
+    const wrap = document.createElement('div');
+    wrap.appendChild(categoryButton(c));
+    if (c.subs && c.subs.length > 0) {
+      const subs = document.createElement('div');
+      subs.className = 'subs';
+      c.subs.forEach(s => subs.appendChild(subButton(c, s)));
+      wrap.appendChild(subs);
+    }
+    return wrap;
+  }
+
   function renderMenu() {
     $('hello').textContent = `Hallo ${playerName}! Bereit für eine Runde? 🧙‍♀️`;
     const lvl = L.levelFor(stats.xp);
@@ -159,18 +227,7 @@
 
     const box = $('categories');
     box.innerHTML = '';
-    CATEGORIES.forEach(c => {
-      const b = document.createElement('button');
-      b.className = 'cat';
-      const mastery = Math.round(L.categoryMastery(QUESTIONS, stats.box, c.id) * 100);
-      b.innerHTML = `<span class="icon">${c.icon}</span><span class="name"></span><span class="desc"></span>` +
-        `${c.weight >= 3 ? '<span class="hardtag">⭐ Extra-Training</span>' : ''}` +
-        `<div class="meter"><div style="width:${mastery}%"></div></div><small>${mastery}% gemeistert</small>`;
-      b.querySelector('.name').textContent = c.name;
-      b.querySelector('.desc').textContent = c.desc;
-      b.onclick = () => startRound(c.id);
-      box.appendChild(b);
-    });
+    CATEGORIES.forEach(c => box.appendChild(categoryElement(c)));
 
     $('badges').innerHTML = '';
     L.BADGES.forEach(bd => {
@@ -183,10 +240,10 @@
   }
 
   // ---------- Round ----------
-  function startRound(catId) {
-    const picked = L.pickQuestions(QUESTIONS, stats, catId, CATEGORIES);
+  function startRound(catId, subId = null) {
+    const picked = L.pickQuestions(QUESTIONS, stats, catId, CATEGORIES, L.ROUND_SIZE, Math.random, subId);
     round = {
-      catId, queue: picked.slice(), total: picked.length, doneFirst: new Set(), retried: new Set(),
+      catId, subId, queue: picked.slice(), total: picked.length, doneFirst: new Set(), retried: new Set(),
       score: 0, combo: 0, bestCombo: 0, correctFirstTry: 0, answeredFirstTry: 0, wrong: [], current: null, locked: false,
     };
     $('score').textContent = '0';
@@ -198,6 +255,7 @@
     $('score').textContent = round.score;
     $('combo').textContent = `🔥 x${round.combo}`;
     $('progress').textContent = `Frage ${Math.min(round.doneFirst.size + 1, round.total)} / ${round.total}`;
+    $('progressBar').style.width = `${round.total ? (round.doneFirst.size / round.total) * 100 : 0}%`;
   }
 
   function nextQuestion() {
@@ -209,7 +267,9 @@
     $('ruleBox').classList.add('hidden');
     $('helpBtn').classList.toggle('hidden', !q.ruleId);
     const cat = CATEGORIES.find(c => c.id === q.cat);
-    $('catLabel').textContent = `${cat.icon} ${cat.name}` + (round.retried.has(q.id) ? '  🔁 Wiederholung!' : '');
+    const sub = (cat.subs || []).find(s => s.id === q.sub);
+    $('catLabel').textContent = `${cat.icon} ${cat.name}` + (sub ? ` › ${sub.name}` : '') +
+      (round.retried.has(q.id) ? '  🔁 Wiederholung!' : '');
     $('prompt').textContent = q.prompt;
     $('display').textContent = q.display || '';
     $('display').classList.toggle('hidden', !q.display);
@@ -314,7 +374,7 @@
   $('rulebookBackBtn').onclick = renderMenu;
   $('nextBtn').onclick = nextQuestion;
   $('quitBtn').onclick = () => { saveStats(); renderMenu(); };
-  $('againBtn').onclick = () => startRound(round.catId);
+  $('againBtn').onclick = () => startRound(round.catId, round.subId);
   $('menuBtn').onclick = renderMenu;
   $('startBtn').onclick = submitName;
   $('nameInput').onkeydown = e => { if (e.key === 'Enter') submitName(); };
