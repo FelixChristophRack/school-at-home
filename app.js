@@ -171,18 +171,25 @@
     return Math.round(L.categoryMastery(QUESTIONS, stats.box, catId, subId) * 100);
   }
 
-  // Build the main button of a category (starts a round with all its questions)
-  function categoryButton(c) {
-    const b = document.createElement('button');
-    b.className = 'cat';
+  // Build the (non-clickable) info part of a category card
+  function categoryInfo(c) {
+    const info = document.createElement('div');
     const mastery = masteryPercent(c.id, null);
-    b.innerHTML = `<span class="cat-icon">${c.icon}</span>` +
+    info.innerHTML = `<span class="cat-icon">${c.icon}</span>` +
       `<span class="cat-name"><span class="cat-title"></span>${c.weight >= 3 ? '<span class="hardtag">⭐ Extra-Training</span>' : ''}</span>` +
       '<span class="cat-desc"></span>' +
       `<div class="meter"><div style="width:${mastery}%"></div></div>` +
       `<small class="mt-1 block text-xs text-slate-500">${mastery}% gemeistert</small>`;
-    b.querySelector('.cat-title').textContent = c.name;
-    b.querySelector('.cat-desc').textContent = c.desc;
+    info.querySelector('.cat-title').textContent = c.name;
+    info.querySelector('.cat-desc').textContent = c.desc;
+    return info;
+  }
+
+  // Build the badge that starts a round with all topics of a category
+  function allButton(c) {
+    const b = document.createElement('button');
+    b.className = 'sub-btn sub-all';
+    b.textContent = '▶ Alle Themen';
     b.onclick = () => startRound(c.id);
     return b;
   }
@@ -201,17 +208,17 @@
     return b;
   }
 
-  // A category card plus (if available) its sub exercises
+  // A category card containing its info, the "all topics" badge and its sub badges
   function categoryElement(c) {
-    const wrap = document.createElement('div');
-    wrap.appendChild(categoryButton(c));
-    if (c.subs && c.subs.length > 0) {
-      const subs = document.createElement('div');
-      subs.className = 'subs';
-      c.subs.forEach(s => subs.appendChild(subButton(c, s)));
-      wrap.appendChild(subs);
-    }
-    return wrap;
+    const card = document.createElement('div');
+    card.className = 'cat';
+    card.appendChild(categoryInfo(c));
+    const subs = document.createElement('div');
+    subs.className = 'subs';
+    subs.appendChild(allButton(c));
+    (c.subs || []).forEach(s => subs.appendChild(subButton(c, s)));
+    card.appendChild(subs);
+    return card;
   }
 
   function renderMenu() {
@@ -372,6 +379,8 @@
   $('rulebookBtn').onclick = renderRulebook;
   $('rulebookTrainBtn').onclick = () => startRound('regeln');
   $('rulebookBackBtn').onclick = renderMenu;
+  $('rulebookTrainBtnTop').onclick = () => startRound('regeln');
+  $('rulebookBackBtnTop').onclick = renderMenu;
   $('nextBtn').onclick = nextQuestion;
   $('quitBtn').onclick = () => { saveStats(); renderMenu(); };
   $('againBtn').onclick = () => startRound(round.catId, round.subId);
